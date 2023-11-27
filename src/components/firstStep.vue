@@ -8,13 +8,19 @@
       <div>
         <label for="password">비밀번호 </label>
         <input type="password" id="password" v-model="password" required>
+        <div v-if="!isPasswordValid && password">
+          <p>비밀번호는 영문 대문자, 소문자, 숫자, 특수문자를 포함한 8자리 이상의 문자열이어야 합니다.</p>
+        </div>
       </div>
       <div>
         <label for="confirmPassword">비밀번호 확인 </label>
         <input type="password" id="confirmPassword" v-model="confirmPassword" required>
+        <div v-if="password !== confirmPassword && confirmPassword">
+          <p>비밀번호와 비밀번호 확인이 일치하지 않습니다.</p>
+        </div>
       </div>
       <div>
-        <button type="submit">다음</button>
+        <button :disabled="!isFormValid" type="submit">다음</button>
       </div>
     </form>
   </div>
@@ -30,11 +36,10 @@ export default {
     };
   },
   created() {
-    // 페이지가 로드될 때 로컬 스토리지에서 email과 password를 불러옵니다.
+    // 페이지가 로드될 때 로컬 스토리지에서 email과 password 셋팅
     this.email = localStorage.getItem('savedEmail') || '';
     this.password = localStorage.getItem('savedPassword') || '';
     this.confirmPassword = localStorage.getItem('savedConfirmPassword') || '';
-
   },
   computed: {
     isFormValid() {
@@ -45,6 +50,9 @@ export default {
         this.password === this.confirmPassword &&
         this.isPassword(this.password)
       );
+    },
+    isPasswordValid() {
+      return this.isPassword(this.password);
     }
   },
   methods: {
@@ -56,10 +64,8 @@ export default {
         localStorage.setItem('savedPassword', this.password);
         localStorage.setItem('savedConfirmPassword', this.confirmPassword);
         this.$router.push('/secondStep'); 
-      } else if( this.password !== this.confirmPassword) {
-        alert('비밀번호 확인을 다시 입력해주세요.');
-      } else {
-        alert('비밀번호에는 영문 대문자, 소문자, 숫자, 특수문자를 포함한 8자리 이상의 문자열이 필요합니다.');
+      } else if (this.password !== this.confirmPassword) {
+        alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       }
     },
     //비밀번호 유효성 검사

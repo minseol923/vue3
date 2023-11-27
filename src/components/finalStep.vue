@@ -49,11 +49,12 @@
     },
     methods: {
       submitForm() {
-        if (this.isValidCardNumber) {
-          console.log('폼이 유효합니다. 제출됨!');
-          // 여기에 제출 로직 추가
-        } else {
-          console.log('유효하지 않은 입력입니다.');
+        if (!this.isValidCardNumber) {
+            alert("유효하지 않는 카드 번호 입니다.")
+        } else{
+            console.log("제출 완료")
+            this.$router.push('/infoPage');
+
         }
       }
     }

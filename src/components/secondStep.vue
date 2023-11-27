@@ -4,20 +4,26 @@
         <div>
           <label for="name">이름</label>
           <input type="text" id="name" v-model="name" required>
+          <div v-if="!isValidateName && name">
+           <p>2글자 이상의 한글 완성형, 또는 3글자 이상의 영문 알파벳이고 그 외 특수문자, 숫자, 공백은 허용하지 않습니다.</p>
+          </div>
         </div>
         <div>
           <label for="phoneNumber">연락처</label>
           <input type="text" id="phoneNumber" v-model="phoneNumber" required>
+          <div v-if="!isValidatePhoneNumber && phoneNumber">
+           <p>0으로 시작하며 중간 3-4자리, 마지막 4자리의 형식이며 하이픈 또는 공백 허용합니다.</p>
+          </div>
         </div>
         <div>
             <label for="phoneNumber">주소</label>
-            <button @click="execDaumPostcode">주소검색</button> <br>
+            <button @click="daumPostcode">주소검색</button> <br>
             <input type="text" v-model="address" readonly>
-            <input type="text" v-model="extraAddress" readonly>
+            <input type="text" v-model="extraAddress">
         </div>
         <div>
             <button @click="goBack">이전</button>
-            <button type="submit">다음</button>
+            <button :disabled="!isFormValid" type="submit">다음</button>
         </div>
       </form>
     </div>
@@ -33,13 +39,43 @@
         extraAddress: ''
       };
     },
+    created() {
+    // 페이지가 로드될 때 로컬 스토리지에서 name, phoneNumber, address 셋팅
+    this.name = localStorage.getItem('savedName') || '';
+    this.phoneNumber = localStorage.getItem('savedPhoneNumber') || '';
+    this.address = localStorage.getItem('savedAddress') || '';
+    this.extraAddress = localStorage.getItem('savedExtraAddress') || '';
+
+  },
+    computed: {
+     isFormValid() {
+      return (
+        this.name &&
+        this.phoneNumber &&
+        this.address &&
+        this.extraAddress &&
+        this.validatePhoneNumber(this.phoneNumber)
+      );
+    },
+      isValidateName() {
+        return this.validateName(this.name);
+    },
+      isValidatePhoneNumber() {
+        return this.validatePhoneNumber(this.phoneNumber);
+    }
+  },
     methods: {
       submitForm() {
-        if (this.validateName(this.name) && this.validatePhoneNumber(this.phoneNumber)) {
+        if (this.validateName(this.name) && this.validatePhoneNumber(this.phoneNumber)&& this.address) {
+        localStorage.setItem('savedName', this.name);
+        localStorage.setItem('savedPhoneNumber', this.phoneNumber);
+        localStorage.setItem('savedAddress', this.address);
+        localStorage.setItem('savedExtraAddress', this.extraAddress);
+
           // 이름과 핸드폰 번호가 유효한 경우에만 처리
           console.log('폼이 제출되었습니다!');
           // 다음 단계로 라우팅
-          // this.$router.push('/nextStep');
+          this.$router.push('/finalStep');
         } else {
           console.log('유효하지 않은 입력입니다.');
         }
@@ -49,38 +85,31 @@
         return nameRegex.test(name);
       },
       validatePhoneNumber(phoneNumber) {
-        const phoneRegex = /^0\d{2,3}-?\d{3,4}-?\d{4}$/; // 0으로 시작하고 하이픈 또는 공백 허용한 형식
+        const phoneRegex = /^0\d{2,3}[ -]?\d{3,4}[ -]?\d{4}$/;
         return phoneRegex.test(phoneNumber);
       },
-      execDaumPostcode() {
+      daumPostcode() {
       new window.daum.Postcode({
         oncomplete: (data) => {
           if (this.extraAddress !== '') {
             this.extraAddress = '';
           }
           if (data.userSelectedType === 'R') {
-            // 사용자가 도로명 주소를 선택했을 경우
+            // 도로명 주소를 선택했을 경우
             this.address = data.roadAddress;
           } else {
-            // 사용자가 지번 주소를 선택했을 경우(J)
+            // 지번 주소를 선택했을 경우
             this.address = data.jibunAddress;
           }
-
-          // 사용자가 선택한 주소가 도로명 타입일때 참고항목을 조합한다.
           if (data.userSelectedType === 'R') {
-            // 법정동명이 있을 경우 추가한다. (법정리는 제외)
-            // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
-            if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
-              this.extraAddress += data.bname;
-            }
-            // 건물명이 있고, 공동주택일 경우 추가한다.
+            // 건물명이 있을 경우
             if (data.buildingName !== '' && data.apartment === 'Y') {
               this.extraAddress +=
                 this.extraAddress !== ''
                   ? `, ${data.buildingName}`
                   : data.buildingName;
             }
-            // 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
+            // 표시할 참고항목이 있을 경우
             if (this.extraAddress !== '') {
               this.extraAddress = `(${this.extraAddress})`;
             }

@@ -2,15 +2,15 @@
   <div>
     <form @submit.prevent="submitForm">
       <div>
-        <label for="email">이메일:</label>
+        <label for="email">이메일 </label>
         <input type="email" id="email" v-model="email" required>
       </div>
       <div>
-        <label for="password">비밀번호:</label>
+        <label for="password">비밀번호 </label>
         <input type="password" id="password" v-model="password" required>
       </div>
       <div>
-        <label for="confirmPassword">비밀번호 확인:</label>
+        <label for="confirmPassword">비밀번호 확인 </label>
         <input type="password" id="confirmPassword" v-model="confirmPassword" required>
       </div>
       <div>

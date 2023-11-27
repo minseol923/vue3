@@ -1,6 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
 import FirstStep from '@/components/firstStep.vue'
 import SecondStep from '@/components/secondStep.vue'
+import FinalStep from '@/components/finalStep.vue'
 
 const routes = [
     {
@@ -12,6 +13,11 @@ const routes = [
         path: "/secondStep",
         name: "SecondStep", 
         component: SecondStep,
+    },
+    {
+        path: "/finalStep",
+        name: "FinalStep", 
+        component: FinalStep,
     },
 ];
 

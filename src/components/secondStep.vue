@@ -5,124 +5,138 @@
           <label for="name">이름</label>
           <input type="text" id="name" v-model="name" required>
           <div v-if="!isValidateName && name">
-           <p>2글자 이상의 한글 완성형, 또는 3글자 이상의 영문 알파벳이고 그 외 특수문자, 숫자, 공백은 허용하지 않습니다.</p>
+            <p>2글자 이상의 한글 완성형, 또는 3글자 이상의 영문 알파벳이고 그 외 특수문자, 숫자, 공백은 허용하지 않습니다.</p>
           </div>
         </div>
         <div>
           <label for="phoneNumber">연락처</label>
           <input type="text" id="phoneNumber" v-model="phoneNumber" required>
           <div v-if="!isValidatePhoneNumber && phoneNumber">
-           <p>0으로 시작하며 중간 3-4자리, 마지막 4자리의 형식이며 하이픈 또는 공백 허용합니다.</p>
+            <p>0으로 시작하며 중간 3-4자리, 마지막 4자리의 형식이며 하이픈 또는 공백 허용합니다.</p>
           </div>
         </div>
         <div>
-            <label for="phoneNumber">주소</label>
-            <button @click="daumPostcode">주소검색</button> <br>
-            <input type="text" v-model="address" readonly>
-            <input type="text" v-model="extraAddress">
+          <label for="phoneNumber">주소</label>
+          <button @click="daumPostcode">주소검색</button> <br>
+          <input type="text" v-model="address" readonly>
+          <input type="text" v-model="extraAddress">
         </div>
         <div>
-            <button @click="goBack">이전</button>
-            <button :disabled="!isFormValid" type="submit">다음</button>
+          <button @click="goBack">이전</button>          
+          <button :disabled="!isFormValid" type="submit" @click="gofinalPage">다음</button>
         </div>
       </form>
     </div>
   </template>
   
   <script>
+  import { ref, computed, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
+
   export default {
-    data() {
-      return {
-        name: '',
-        phoneNumber: '',
-        address: '',
-        extraAddress: ''
-      };
-    },
-    created() {
-    // 페이지가 로드될 때 로컬 스토리지에서 name, phoneNumber, address 셋팅
-    this.name = localStorage.getItem('savedName') || '';
-    this.phoneNumber = localStorage.getItem('savedPhoneNumber') || '';
-    this.address = localStorage.getItem('savedAddress') || '';
-    this.extraAddress = localStorage.getItem('savedExtraAddress') || '';
+    setup() {
+      const name = ref('');
+      const phoneNumber = ref('');
+      const address = ref('');
+      const extraAddress = ref('');
+      const router = useRouter();
 
-  },
-    computed: {
-     isFormValid() {
-      return (
-        this.name &&
-        this.phoneNumber &&
-        this.address &&
-        this.extraAddress &&
-        this.validatePhoneNumber(this.phoneNumber)
-      );
-    },
-      isValidateName() {
-        return this.validateName(this.name);
-    },
-      isValidatePhoneNumber() {
-        return this.validatePhoneNumber(this.phoneNumber);
-    }
-  },
-    methods: {
-      submitForm() {
-        if (this.validateName(this.name) && this.validatePhoneNumber(this.phoneNumber)&& this.address) {
-        localStorage.setItem('savedName', this.name);
-        localStorage.setItem('savedPhoneNumber', this.phoneNumber);
-        localStorage.setItem('savedAddress', this.address);
-        localStorage.setItem('savedExtraAddress', this.extraAddress);
-
-          // 이름과 핸드폰 번호가 유효한 경우에만 처리
+  
+      onMounted(() => {
+        // 페이지가 로드될 때 로컬 스토리지에서 name, phoneNumber, address 셋팅
+        name.value = localStorage.getItem('savedName') || '';
+        phoneNumber.value = localStorage.getItem('savedPhoneNumber') || '';
+        address.value = localStorage.getItem('savedAddress') || '';
+        extraAddress.value = localStorage.getItem('savedExtraAddress') || '';
+      });
+  
+      const isValidateName = computed(() => {
+        const nameRegex = /^[가-힣]{2,}|[a-zA-Z]{3,}$/;
+        return nameRegex.test(name.value);
+      });
+  
+      const isValidatePhoneNumber = computed(() => {
+        const phoneRegex = /^0\d{2,3}[ -]?\d{3,4}[ -]?\d{4}$/;
+        return phoneRegex.test(phoneNumber.value);
+      });
+  
+      const isFormValid = computed(() => {
+        return (
+          name.value &&
+          phoneNumber.value &&
+          address.value &&
+          extraAddress.value &&
+          isValidatePhoneNumber.value
+        );
+      });
+  
+      const submitForm = () => {
+        if (isValidateName.value && isValidatePhoneNumber.value && address.value && extraAddress.value) {
+          localStorage.setItem('savedName', name.value);
+          localStorage.setItem('savedPhoneNumber', phoneNumber.value);
+          localStorage.setItem('savedAddress', address.value);
+          localStorage.setItem('savedExtraAddress', extraAddress.value);
+  
           console.log('폼이 제출되었습니다!');
-          // 다음 단계로 라우팅
-          this.$router.push('/finalStep');
+          
         } else {
           console.log('유효하지 않은 입력입니다.');
         }
-      },
-      validateName(name) {
-        const nameRegex = /^[가-힣]{2,}|[a-zA-Z]{3,}$/; // 한글 2글자 이상 또는 영문 3글자 이상
-        return nameRegex.test(name);
-      },
-      validatePhoneNumber(phoneNumber) {
-        const phoneRegex = /^0\d{2,3}[ -]?\d{3,4}[ -]?\d{4}$/;
-        return phoneRegex.test(phoneNumber);
-      },
-      daumPostcode() {
-      new window.daum.Postcode({
+      };
+  
+    const daumPostcode = function() {
+     new window.daum.Postcode({
         oncomplete: (data) => {
-          if (this.extraAddress !== '') {
+            if (this.extraAddress !== '') {
             this.extraAddress = '';
-          }
-          if (data.userSelectedType === 'R') {
+            }
+            if (data.userSelectedType === 'R') {
             // 도로명 주소를 선택했을 경우
             this.address = data.roadAddress;
-          } else {
+            } else {
             // 지번 주소를 선택했을 경우
             this.address = data.jibunAddress;
-          }
-          if (data.userSelectedType === 'R') {
+            }
+            if (data.userSelectedType === 'R') {
             // 건물명이 있을 경우
             if (data.buildingName !== '' && data.apartment === 'Y') {
-              this.extraAddress +=
+                this.extraAddress +=
                 this.extraAddress !== ''
-                  ? `, ${data.buildingName}`
-                  : data.buildingName;
+                    ? `, ${data.buildingName}`
+                    : data.buildingName;
             }
             // 표시할 참고항목이 있을 경우
             if (this.extraAddress !== '') {
-              this.extraAddress = `(${this.extraAddress})`;
+                this.extraAddress = `(${this.extraAddress})`;
             }
-          } else {
+            } else {
             this.extraAddress = '';
-          }
+            }
         }
-      }).open();
+        }).open();
+        };
+  
+      const goBack = () => {
+        window.history.back();
+      };
+      const gofinalPage = () => {
+        router.push('/finalStep');
+      }
+  
+      return {
+        name,
+        phoneNumber,
+        address,
+        extraAddress,
+        isValidateName,
+        isValidatePhoneNumber,
+        isFormValid,
+        submitForm,
+        daumPostcode,
+        goBack,
+        gofinalPage
+      };
     },
-    goBack() {
-      // 브라우저의 이전 페이지로 이동
-      window.history.back();
-    }
-    }
   };
   </script>
+  

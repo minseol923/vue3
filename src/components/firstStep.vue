@@ -27,52 +27,59 @@
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
 export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-      confirmPassword: ''
-    };
-  },
-  created() {
-    // 페이지가 로드될 때 로컬 스토리지에서 email과 password 셋팅
-    this.email = localStorage.getItem('savedEmail') || '';
-    this.password = localStorage.getItem('savedPassword') || '';
-    this.confirmPassword = localStorage.getItem('savedConfirmPassword') || '';
-  },
-  computed: {
-    isFormValid() {
+  setup() {
+    const email = ref('');
+    const password = ref('');
+    const confirmPassword = ref('');
+    const router = useRouter();
+
+    onMounted(() => {
+      // 페이지가 로드될 때 로컬 스토리지에서 email과 password 셋팅
+      email.value = localStorage.getItem('savedEmail') || '';
+      password.value = localStorage.getItem('savedPassword') || '';
+      confirmPassword.value = localStorage.getItem('savedConfirmPassword') || '';
+    });
+
+    const isPasswordValid = computed(() => {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/;
+      return passwordRegex.test(password.value);
+    });
+
+    const isFormValid = computed(() => {
       return (
-        this.email &&
-        this.password &&
-        this.confirmPassword &&
-        this.password === this.confirmPassword &&
-        this.isPassword(this.password)
+        email.value &&
+        password.value &&
+        confirmPassword.value &&
+        password.value === confirmPassword.value &&
+        isPasswordValid.value
       );
-    },
-    isPasswordValid() {
-      return this.isPassword(this.password);
-    }
-  },
-  methods: {
-    submitForm() {
-      if (this.isFormValid) {
+    });
+
+    const submitForm = () => {
+      if (isFormValid.value) {
         console.log('폼이 제출되었습니다!');
         // 로컬 스토리지에 email과 password 저장
-        localStorage.setItem('savedEmail', this.email);
-        localStorage.setItem('savedPassword', this.password);
-        localStorage.setItem('savedConfirmPassword', this.confirmPassword);
-        this.$router.push('/secondStep'); 
-      } else if (this.password !== this.confirmPassword) {
+        localStorage.setItem('savedEmail', email.value);
+        localStorage.setItem('savedPassword', password.value);
+        localStorage.setItem('savedConfirmPassword', confirmPassword.value);
+        router.push('/secondStep');
+      } else if (password.value !== confirmPassword.value) {
         alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       }
-    },
-    //비밀번호 유효성 검사
-    isPassword(password) {
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/;
-      return passwordRegex.test(password);
-    }
-  }
+    };
+
+    return {
+      email,
+      password,
+      confirmPassword,
+      isPasswordValid,
+      isFormValid,
+      submitForm,
+    };
+  },
 };
 </script>

@@ -1,4 +1,4 @@
-# vue-with-typescript
+# balaan-vue
 
 ## Project setup
 ```

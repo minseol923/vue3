@@ -16,15 +16,17 @@
   </template>
   
   <script>
+  import { ref, computed } from 'vue';
+  import { useRouter } from 'vue-router';
+
+  
   export default {
-    data() {
-      return {
-        cardNumber: ['', '', '', '']
-      };
-    },
-    computed: {
-      isValidCardNumber() {
-        const flattened = this.cardNumber.join(''); // 카드번호를 합쳐서 하나의 문자열로 만듦
+    setup() {
+      const cardNumber = ref(['', '', '', '']);
+      const router = useRouter();
+  
+      const isValidCardNumber = computed(() => {
+        const flattened = cardNumber.value.join('');
         if (flattened.length !== 16 || isNaN(flattened)) {
           return false;
         }
@@ -33,7 +35,6 @@
         for (let i = 0; i < flattened.length; i++) {
           let digit = parseInt(flattened[i], 10);
   
-          // 짝수 자릿수면서 9를 넘어가면 각 자릿수를 더함
           if ((i + 1) % 2 === 0) {
             digit *= 2;
             if (digit > 9) {
@@ -43,20 +44,24 @@
           sum += digit;
         }
         
-        // 유효성 검사
         return sum % 10 === 0;
-      }
-    },
-    methods: {
-      submitForm() {
-        if (!this.isValidCardNumber) {
-            alert("유효하지 않는 카드 번호 입니다.")
-        } else{
-            console.log("제출 완료")
-            this.$router.push('/infoPage');
-
+      });
+  
+      const submitForm = () => {
+        if (!isValidCardNumber.value) {
+          alert("유효하지 않는 카드 번호 입니다.");
+        } else {
+          console.log("제출 완료");
+          router.push('/infoPage') 
         }
-      }
-    }
+      };
+  
+      return {
+        cardNumber,
+        isValidCardNumber,
+        submitForm,
+      };
+    },
   };
   </script>
+  

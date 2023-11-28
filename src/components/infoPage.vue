@@ -11,21 +11,28 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+
 export default {
-  data() {
+  setup() {
+    const savedName = ref('');
+    const savedEmail = ref('');
+    const savedAddress = ref('');
+    const savedPhoneNumber = ref('');
+
+    onMounted(() => {
+      savedName.value = localStorage.getItem('savedName') || '';
+      savedEmail.value = localStorage.getItem('savedEmail') || '';
+      savedAddress.value = localStorage.getItem('savedAddress') || '';
+      savedPhoneNumber.value = localStorage.getItem('savedPhoneNumber') || '';
+    });
+
     return {
-      savedName: '',
-      savedEmail: '',
-      savedAddress: '',
-      savedPhoneNumber: '',
+      savedName,
+      savedEmail,
+      savedAddress,
+      savedPhoneNumber,
     };
-  },
-  created() {
-    // 로컬 스토리지에서 정보를 가져와 데이터에 할당
-    this.savedName = localStorage.getItem('savedName') || '';
-    this.savedEmail = localStorage.getItem('savedEmail') || '';
-    this.savedAddress = localStorage.getItem('savedAddress') || '';
-    this.savedPhoneNumber = localStorage.getItem('savedPhoneNumber') || '';
   },
 };
 </script>
